@@ -1,8 +1,16 @@
+import { initDb } from './config/database'
 import express from 'express'
-// rest of the code remains same
+import dotenv from 'dotenv'
+
 const app = express()
-const PORT = 8000
+app.use(express.json())
+dotenv.config()
+const port = process.env.PORT || 8000
+
+initDb(process.env.DB)
+
 app.get('/', (req, res) => res.send('Express + TypeScript Server'))
-app.listen(PORT, () => {
-  console.log(`⚡️[server]: Server is running at https://localhost:${PORT}`)
+
+app.listen(port, () => {
+  console.log(`⚡️ Server | Running on ${port}`)
 })
