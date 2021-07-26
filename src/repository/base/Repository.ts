@@ -1,10 +1,10 @@
-import mongoose from 'mongoose'
+import mongoose, { CallbackError } from 'mongoose'
 
 class Repository<T extends mongoose.Document> {
   private _model: mongoose.Model<mongoose.Document>
 
-  constructor(modelSchema: mongoose.Model<mongoose.Document> | any) {
-    this._model = modelSchema
+  constructor(model: mongoose.Model<mongoose.Document> | any) {
+    this._model = model
   }
 
   index(callback: (error: any, result: mongoose.Document[]) => void) {
@@ -15,7 +15,7 @@ class Repository<T extends mongoose.Document> {
     this._model.findById(_id, callback)
   }
 
-  create(item: T, callback: (error: any, result: mongoose.Document) => void) {
+  create(item: T, callback: (error: any, result: any) => void) {
     this._model.create(item, callback)
   }
 

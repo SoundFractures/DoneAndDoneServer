@@ -1,19 +1,31 @@
 import Repository from './base/Repository'
 import IUserModel from '../model/interfaces/IUserModel'
-import UserSchema from '../model/schemas/UserSchema'
-
+import UserModel from '../model/UserModel'
+import IErrorModel from '../model/interfaces/IErrorModel'
 class UserRepository extends Repository<IUserModel> {
   constructor() {
-    super(UserSchema)
+    super(UserModel)
   }
 
-  findWithPassword(
+  findCompleteUser(
     _id: string,
-    callback: (error: any, result: IUserModel | null) => void
+    callback: (error: IErrorModel | null, result: any) => void
   ) {
-    UserSchema.findById(_id)
+    UserModel.findById(_id)
       .select('+password')
-      .exec((error, data) => callback(error, data))
+      .exec((error, data) => {
+        if (!data) callback({ message: 'User not found', status: 404 }, null)
+        callback(null, data)
+      })
+  }
+
+  findByEmail(email: string, callback: (error: any, result: any) => void) {
+    UserModel.findOne({ email: email })
+      .select('+password')
+      .exec((error, data) => {
+        if (!data) callback({ message: 'User not found', status: 404 }, null)
+        callback(null, data)
+      })
   }
 }
 

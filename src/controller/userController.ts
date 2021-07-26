@@ -1,21 +1,30 @@
 import express from 'express'
-import UserService from '../service/userService'
-
+import UserService from '../service/UserService'
+import authMiddleware from '../middleware/AuthMiddleware'
 const router = express.Router()
+
+//Middleware
+// router.use((req, res, next) => authMiddleware(req, res, next))
+
 const userService = new UserService()
-router
-  .route('/')
-  .get((request: express.Request, res: express.Response): void => {
-    userService.index((error, result) => {
-      if (error) res.status(400).json(error)
-      res.send(result)
-    })
+router.route('/').get((req: express.Request, res: express.Response): void => {
+  userService.index((error, result) => {
+    if (error) res.status(400).json(error)
+    res.send(result)
   })
+})
+
+// router.route('/').post((req: express.Request, res: express.Response): void => {
+//   userService.create(req.body, (error, result) => {
+//     if (error) res.status(400).json(error)
+//     res.send(result)
+//   })
+// })
 
 router
-  .route('/')
-  .post((request: express.Request, res: express.Response): void => {
-    userService.create(request.body, (error, result) => {
+  .route('/:id')
+  .get((req: express.Request, res: express.Response): void => {
+    userService.find(req.params.id, (error, result) => {
       if (error) res.status(400).json(error)
       res.send(result)
     })
@@ -23,11 +32,26 @@ router
 
 router
   .route('/:id')
-  .get((request: express.Request, res: express.Response): void => {
-    userService.find(request.params.id, (error, result) => {
-      if (error) res.status(400).json(error)
-      res.send(result)
-    })
-  })
+  .patch(
+    authMiddleware,
+    (req: express.Request, res: express.Response): void => {
+      userService.update(req.params.id, req.body, (error, result) => {
+        if (error) res.json(error)
+        res.json(result)
+      })
+    }
+  )
+
+router
+  .route('/:id')
+  .delete(
+    authMiddleware,
+    (req: express.Request, res: express.Response): void => {
+      userService.delete(req.params.id, (error, result) => {
+        if (error) res.status(404).json(error)
+        res.status(200).json(result)
+      })
+    }
+  )
 
 export default router
