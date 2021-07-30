@@ -23,7 +23,7 @@ class UserRepository extends Repository<IUserModel> {
     UserModel.findOne({ email: email })
       .select('+password')
       .exec((error, data) => {
-        if (!data) callback({ message: 'User not found', status: 404 }, null)
+        if (!data) callback({ message: 'User not found', status: 404 }, data)
         callback(null, data)
       })
   }

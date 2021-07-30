@@ -5,25 +5,38 @@ const router = express.Router()
 
 const userService = new UserService()
 router
-  .route('/verify')
+  .route('/user')
   .get(authMiddleware, (req: any, res: express.Response): void => {
-    userService.verify(req.user._id, (error, result) => {
-      if (error) res.status(404).json(error)
-      res.send(result)
+    userService.user(req.user.email, req.token, (error, result) => {
+      if (error) res.status(error.status).json({ error: error.message })
+      else res.status(200).json(result)
     })
   })
 
 router.route('/login').post((req: any, res: express.Response): void => {
   userService.login(req.body, (error, result) => {
-    if (error) res.status(error.status).json({ error: error.message })
-    res.send(result)
+    if (error) {
+      console.log(error)
+      res.status(error.status).json({ error: error.message })
+    } else {
+      res.status(200).json(result)
+    }
   })
 })
+
+router
+  .route('/logout')
+  .post(authMiddleware, (req: any, res: express.Response): void => {
+    userService.logout(req.token, (error, result) => {
+      //if (error) res.status(error.status).json({ error: error.message })
+      res.status(200).json({ message: result })
+    })
+  })
 
 router.route('/register').post((req: any, res: express.Response): void => {
   userService.register(req.body, (error, result) => {
     if (error) res.status(error.status).json({ error: error.message })
-    res.send(result)
+    else res.status(200).json(result)
   })
 })
 

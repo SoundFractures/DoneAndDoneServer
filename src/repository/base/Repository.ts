@@ -12,7 +12,10 @@ class Repository<T extends mongoose.Document> {
   }
 
   find(_id: string, callback: (error: any, result: T) => void) {
-    this._model.findById(_id, callback)
+    this._model.findById(_id, (error: any, result: T) => {
+      if (!result) callback(true, result)
+      callback(error, result)
+    })
   }
 
   create(item: T, callback: (error: any, result: any) => void) {
@@ -28,7 +31,7 @@ class Repository<T extends mongoose.Document> {
   }
 
   delete(_id: string, callback: (error: any, result: any) => void) {
-    this._model.remove({ _id }, (err) => callback(err, null))
+    this._model.deleteOne({ _id }, (err) => callback(err, null))
   }
 }
 

@@ -35,15 +35,30 @@ class UserService {
   }
 
   find(_id: string, callback: (error: any, result: IUserModel) => void) {
-    this._userRepository.find(_id, callback)
+    this._userRepository.find(_id, (error, result) => {
+      if (error) callback({ message: 'User not found', status: 404 }, result)
+      else callback(error, result)
+    })
   }
 
   // Auth
-  verify(
-    _id: string,
+  user(
+    email: string,
+    token: string,
     callback: (error: IErrorModel | null, result: any) => void
   ) {
-    this._userRepository.findCompleteUser(_id, callback)
+    this._userRepository.findByEmail(email, (error, result) => {
+      if (error) callback(error, null)
+      callback(null, this.returnAuthUser(result, token))
+    })
+  }
+
+  logout(
+    token: string,
+    callback: (error: IErrorModel | null, result: any) => void
+  ) {
+    console.log('[LOGOUT]: ' + token)
+    callback(null, 'Logged out')
   }
 
   login(
@@ -51,27 +66,33 @@ class UserService {
     callback: (error: IErrorModel | null, result: any) => void
   ) {
     if (!email || !password)
-      callback({ message: 'Email or Password not provided', status: 400 }, null)
-
-    this._userRepository.findByEmail(email, (error, result) => {
-      if (error) callback({ message: 'User not found', status: 404 }, null)
-      bcrypt.compare(password, result!.password).then((equal: boolean) => {
+      return callback(
+        { message: 'Email or Password not provided', status: 400 },
+        null
+      )
+    let user: any = null
+    this._userRepository.findByEmail(email, (findError, findResult) => {
+      if (findError !== null) return callback(findError, null)
+      else user = findResult
+    })
+    if (user) {
+      bcrypt.compare(password, user!.password).then((equal: boolean) => {
         if (!equal)
           callback({ message: 'Wrong email or password', status: 400 }, null)
         jsonwebtoken.sign(
           {
-            _id: result!._id,
-            email: result!.email
+            _id: user!._id,
+            email: user!.email
           },
           process.env.JWT!,
+          { expiresIn: 3600 },
           (error: any, token: any) => {
             if (error) throw error
-            result._doc.token = token
-            callback(null, result)
+            callback(null, { token })
           }
         )
       })
-    })
+    }
   }
 
   register(
@@ -79,7 +100,15 @@ class UserService {
     callback: (error: IErrorModel | null, result: any) => void
   ) {
     if (!body.email || !body.username || !body.password)
-      callback({ message: 'Credentials not provided', status: 404 }, null)
+      return callback(
+        { message: 'Credentials not provided', status: 404 },
+        null
+      )
+
+    this._userRepository.findByEmail(body.email, (error, result) => {
+      if (result)
+        return callback({ message: 'Email already in use', status: 400 }, null)
+    })
     const newUser = new UserModel(body)
     bcrypt.genSalt((error, salt) => {
       if (error) throw error
@@ -94,15 +123,20 @@ class UserService {
               email: result!.email
             },
             process.env.JWT!,
+            { expiresIn: 3600 },
             (error: any, token: any) => {
               if (error) throw error
-              result._doc.token = token
-              callback(null, result)
+              callback(null, { message: 'Registered successfully' })
             }
           )
         })
       })
     })
+  }
+
+  private returnAuthUser(result: any, token: string) {
+    delete result._doc!.password
+    return { user: result, token: token }
   }
 }
 Object.seal(UserService)

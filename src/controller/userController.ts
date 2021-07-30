@@ -14,18 +14,11 @@ router.route('/').get((req: express.Request, res: express.Response): void => {
   })
 })
 
-// router.route('/').post((req: express.Request, res: express.Response): void => {
-//   userService.create(req.body, (error, result) => {
-//     if (error) res.status(400).json(error)
-//     res.send(result)
-//   })
-// })
-
 router
   .route('/:id')
   .get((req: express.Request, res: express.Response): void => {
     userService.find(req.params.id, (error, result) => {
-      if (error) res.status(400).json(error)
+      if (error) res.status(error.status).json({ error: error.message })
       res.send(result)
     })
   })
