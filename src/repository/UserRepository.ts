@@ -15,7 +15,7 @@ class UserRepository extends Repository<IUserModel> {
       .select('+password')
       .exec((error, data) => {
         if (!data) callback({ message: 'User not found', status: 404 }, null)
-        callback(null, data)
+        else callback(null, data)
       })
   }
 
@@ -24,7 +24,7 @@ class UserRepository extends Repository<IUserModel> {
       .select('+password')
       .exec((error, data) => {
         if (!data) callback({ message: 'User not found', status: 404 }, data)
-        callback(null, data)
+        else callback(null, data)
       })
   }
 }

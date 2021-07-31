@@ -61,7 +61,7 @@ class UserService {
     callback(null, 'Logged out')
   }
 
-  login(
+  async login(
     { email, password }: { email: string; password: string },
     callback: (error: IErrorModel | null, result: any) => void
   ) {
@@ -70,42 +70,44 @@ class UserService {
         { message: 'Email or Password not provided', status: 400 },
         null
       )
-    let user: any = null
-    this._userRepository.findByEmail(email, (findError, findResult) => {
+    await this._userRepository.findByEmail(email, (findError, findResult) => {
       if (findError !== null) return callback(findError, null)
-      else user = findResult
+      else {
+        bcrypt
+          .compare(password, findResult!.password)
+          .then((equal: boolean) => {
+            if (!equal)
+              callback(
+                { message: 'Wrong email or password', status: 400 },
+                null
+              )
+            jsonwebtoken.sign(
+              {
+                _id: findResult!._id,
+                email: findResult!.email
+              },
+              process.env.JWT!,
+              { expiresIn: 3600 },
+              (error: any, token: any) => {
+                if (error) throw error
+                callback(null, { token })
+              }
+            )
+          })
+      }
     })
-    if (user) {
-      bcrypt.compare(password, user!.password).then((equal: boolean) => {
-        if (!equal)
-          callback({ message: 'Wrong email or password', status: 400 }, null)
-        jsonwebtoken.sign(
-          {
-            _id: user!._id,
-            email: user!.email
-          },
-          process.env.JWT!,
-          { expiresIn: 3600 },
-          (error: any, token: any) => {
-            if (error) throw error
-            callback(null, { token })
-          }
-        )
-      })
-    }
   }
-
-  register(
+  async register(
     body: IUserModel,
     callback: (error: IErrorModel | null, result: any) => void
   ) {
     if (!body.email || !body.username || !body.password)
       return callback(
-        { message: 'Credentials not provided', status: 404 },
+        { message: 'Credentials not provided', status: 400 },
         null
       )
 
-    this._userRepository.findByEmail(body.email, (error, result) => {
+    await this._userRepository.findByEmail(body.email, (error, result) => {
       if (result)
         return callback({ message: 'Email already in use', status: 400 }, null)
     })
