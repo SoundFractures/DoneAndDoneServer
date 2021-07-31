@@ -3,8 +3,8 @@ import express from 'express'
 import dotenv from 'dotenv'
 import cors from 'cors'
 // Controllers
-import UserController from './src/controller/UserController'
-import AuthController from './src/controller/AuthController'
+import UserController from './src/controller/user.controller'
+import AuthController from './src/controller/auth.controller'
 const app = express()
 app.use(express.json())
 app.use(cors())
