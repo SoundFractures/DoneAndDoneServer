@@ -25,19 +25,6 @@ export default class UserService {
     })
   }
 
-  async createUser(item: UserDocument) {
-    return new Promise((resolve, reject) => {
-      this._userRepository
-        .create(item)
-        .then((data) => resolve(data))
-        .catch((error) => {
-          if (error.code === 11000)
-            reject(new Error('Email already in use', 400))
-          reject(new Error(error.message, 400))
-        })
-    })
-  }
-
   async updateUser(_id, item: UserDocument) {
     return new Promise((resolve, reject) => {
       this._userRepository

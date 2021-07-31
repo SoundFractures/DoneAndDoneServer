@@ -8,7 +8,7 @@ const authMiddleware = (req: any, res: any, next: any) => {
 
   if (!token)
     return res.status(401).json({
-      message: 'Token not found.'
+      message: 'Token not found'
     })
 
   jsonwebtoken.verify(token, process.env.JWT!, (error: any, user: any) => {
@@ -17,7 +17,6 @@ const authMiddleware = (req: any, res: any, next: any) => {
         message: 'Token invalid'
       })
     req.user = user
-    req.token = token
     next()
   })
 }

@@ -1,6 +1,6 @@
 import express from 'express'
 import UserService from '../service/user.service'
-import authMiddleware from '../middleware/AuthMiddleware'
+import authMiddleware from '../middleware/auth.middleware'
 import { IError } from '../utils/types'
 import { makeJSON } from '../utils/controller.functions'
 const router = express.Router()
@@ -22,18 +22,22 @@ router.route('/:id').get((req: express.Request, res: express.Response) => {
     )
 })
 
-router.route('/:id').patch((req: express.Request, res: express.Response) => {
-  _userService
-    .updateUser(req.params.id, req.body)
-    .then((data) => res.json(data))
-    .catch((error) => res.status(error.status).json(makeJSON(error.message)))
-})
+router
+  .route('/:id')
+  .patch(authMiddleware, (req: express.Request, res: express.Response) => {
+    _userService
+      .updateUser(req.params.id, req.body)
+      .then((data) => res.json(data))
+      .catch((error) => res.status(error.status).json(makeJSON(error.message)))
+  })
 
-router.route('/:id').delete((req: express.Request, res: express.Response) => {
-  _userService
-    .deleteUser(req.params.id)
-    .then((data) => res.json(data))
-    .catch((error) => res.status(error.status).json(makeJSON(error.message)))
-})
+router
+  .route('/:id')
+  .delete(authMiddleware, (req: express.Request, res: express.Response) => {
+    _userService
+      .deleteUser(req.params.id)
+      .then((data) => res.json(data))
+      .catch((error) => res.status(error.status).json(makeJSON(error.message)))
+  })
 
 export default router

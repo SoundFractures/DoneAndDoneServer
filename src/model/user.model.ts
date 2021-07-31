@@ -43,11 +43,13 @@ UserSchema.pre('save', async function (next: mongoose.HookNextFunction) {
 })
 
 UserSchema.methods.comparePassword = function (password: string) {
-  const user = this as UserDocument
-
-  return bcrypt.compare(password, user.password).catch((error) => false)
+  return new Promise((resolve, reject) => {
+    const user = this as UserDocument
+    bcrypt.compare(password, user.password).then((equal) => {
+      equal ? resolve(equal) : reject(equal)
+    })
+  })
 }
 
 const User = mongoose.model<UserDocument>('User', UserSchema)
-
 export default User
